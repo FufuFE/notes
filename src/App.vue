@@ -1,7 +1,9 @@
 <template>
   <div id="app">
       <div>
+        Hellow World
         Gyro: {{gyro}}
+        
       </div>
       <div>
         <button @click="publish">Send command</button>
