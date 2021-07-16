@@ -1,12 +1,50 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+      <div>
+        Gyro: {{gyro}}
+      </div>
+      <div>
+        <button @click="publish">Send command</button>
+      </div>
   </div>
 </template>
+
+<script>
+import awsconfig from './aws-exports'
+Amplify.configure(awsconfig)
+
+import Amplify, { PubSub } from 'aws-amplify';
+import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers';
+
+Amplify.addPluggable(new AWSIoTProvider({
+  aws_pubsub_region: 'ap-northeast-1',
+  aws_pubsub_endpoint: 'wss:///mqtt',
+}));
+
+export default {
+  name: 'App',
+  data: () => {
+    return {
+      gyro: "value"
+    }
+  },
+  mounted: async function () {
+    PubSub.subscribe('data/sensor').subscribe({
+      next: data => {
+        this.gyro = data.value.data
+        console.log('Message received', data)
+      },
+      error: error => console.error(error),
+      close: () => console.log('Done'),
+    });
+  },
+  methods: {
+    publish() {
+      PubSub.publish('cmd/device', "cmd");
+    }
+  }
+}
+</script>
 
 <style>
 #app {
@@ -15,18 +53,6 @@
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-}
-
-#nav {
-  padding: 30px;
-}
-
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
+  margin-top: 60px;
 }
 </style>
